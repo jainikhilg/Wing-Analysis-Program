@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biological Data Analysis Tool</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sphigniidae Graph Tool</h1>
+            <p>Compare male and female specimen data across multiple variables</p>
+        </header>
+
+        <main>
+            <div class="data-section">
+                <!-- Male Section -->
+                <section class="gender-section">
+                    <h2>Male Saturniidae</h2>
+                    <div class="file-upload-section">
+                        <label for="maleCSVFile" class="file-label">📁 Upload CSV File:</label>
+                        <input type="file" id="maleCSVFile" accept=".csv" onchange="handleMaleCSVUpload(event)">
+                        <span class="file-hint">CSV should have species name in first column, then data columns</span>
+                    </div>
+                    <div class="drag-drop-zone" id="maleDragZone" ondrop="handleMaleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                        <p>📂 <strong>Drag and drop CSV file here</strong></p>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="maleTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Species</th>
+                                    <th>wingL</th>
+                                    <th>mean_chordL</th>
+                                    <th>wingarea</th>
+                                    <th>moa1</th>
+                                    <th>moa2</th>
+                                    <th>moa3</th>
+                                    <th>moaND1</th>
+                                    <th>moaND2</th>
+                                    <th>moaND3</th>
+                                    <th>wingmass</th>
+                                    <th>wingAR</th>
+                                    <th>bodyL</th>
+                                    <th>maxbodywidth</th>
+                                    <th>bodymass</th>
+                                    <th>Ixx_bw</th>
+                                    <th>Iyy_bw</th>
+                                    <th>Izz_bw</th>
+                                    <th>Ixz_bw</th>
+                                    <th>wbf1</th>
+                                    <th>wbf2</th>
+                                    <th>CWing_loading</th>
+                                    <th>BandWmass</th>
+                                    <th>effective_HW_loading</th>
+                                    <th>L1</th>
+                                    <th>head_L</th>
+                                    <th>thorax_L</th>
+                                    <th>abdomen_L</th>
+                                    <th>head_L_PBL</th>
+                                    <th>thorax_L_PBL</th>
+                                    <th>abdomen_L_PBL</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="maleBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-add" onclick="addMaleRow()">+ Add Row</button>
+                        <button class="btn btn-delete" onclick="deleteMaleRow()" title="Select a row first">Delete Row</button>
+                    </div>
+                </section>
+
+                <!-- Female Section -->
+                <section class="gender-section">
+                    <h2>Female Saturniidae</h2>
+                    <div class="file-upload-section">
+                        <label for="femaleCSVFile" class="file-label">📁 Upload CSV File:</label>
+                        <input type="file" id="femaleCSVFile" accept=".csv" onchange="handleFemaleCSVUpload(event)">
+                        <span class="file-hint">CSV should have species name in first column, then data columns</span>
+                    </div>
+                    <div class="drag-drop-zone" id="femaleDragZone" ondrop="handleFemaleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                        <p>📂 <strong>Drag and drop CSV file here</strong></p>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="femaleTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Species</th>
+                                    <th>wingL</th>
+                                    <th>mean_chordL</th>
+                                    <th>wingarea</th>
+                                    <th>moa1</th>
+                                    <th>moa2</th>
+                                    <th>moa3</th>
+                                    <th>moaND1</th>
+                                    <th>moaND2</th>
+                                    <th>moaND3</th>
+                                    <th>wingmass</th>
+                                    <th>wingAR</th>
+                                    <th>bodyL</th>
+                                    <th>maxbodywidth</th>
+                                    <th>bodymass</th>
+                                    <th>Ixx_bw</th>
+                                    <th>Iyy_bw</th>
+                                    <th>Izz_bw</th>
+                                    <th>Ixz_bw</th>
+                                    <th>wbf1</th>
+                                    <th>wbf2</th>
+                                    <th>CWing_loading</th>
+                                    <th>BandWmass</th>
+                                    <th>effective_HW_loading</th>
+                                    <th>L1</th>
+                                    <th>head_L</th>
+                                    <th>thorax_L</th>
+                                    <th>abdomen_L</th>
+                                    <th>head_L_PBL</th>
+                                    <th>thorax_L_PBL</th>
+                                    <th>abdomen_L_PBL</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="femaleBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-add" onclick="addFemaleRow()">+ Add Row</button>
+                        <button class="btn btn-delete" onclick="deleteFemaleRow()" title="Select a row first">Delete Row</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Compile and Graph Section -->
+            <section class="graph-section">
+                <div class="button-group">
+                    <button class="btn btn-compile" onclick="compileAndGraph()">📊 Compile & Generate Graph</button>
+                </div>
+                <div id="graphNavigationControls" class="graph-navigation" style="display: none;">
+                    <button class="nav-btn nav-prev" onclick="navigateToPreviousGraph()">← Previous</button>
+                    <div class="graph-info">
+                        <span id="currentGraphLabel" class="graph-label">Variable 1 of 1</span>
+                    </div>
+                    <button class="nav-btn nav-next" onclick="navigateToNextGraph()">Next →</button>
+                </div>
+                <div id="graphContainer" class="graph-container">
+                    <p class="placeholder">Graph will appear here after clicking "Compile & Generate Graph"</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
