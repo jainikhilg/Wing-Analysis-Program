@@ -18,7 +18,7 @@
             <div class="data-section">
                 <!-- Male Section -->
                 <section class="gender-section">
-                    <h2>Male Saturniidae</h2>
+                    <h2>Male Moth</h2>
                     <div class="file-upload-section">
                         <label for="maleCSVFile" class="file-label">📁 Upload CSV File:</label>
                         <input type="file" id="maleCSVFile" accept=".csv" onchange="handleMaleCSVUpload(event)">
@@ -77,7 +77,7 @@
 
                 <!-- Female Section -->
                 <section class="gender-section">
-                    <h2>Female Saturniidae</h2>
+                    <h2>Female Moth</h2>
                     <div class="file-upload-section">
                         <label for="femaleCSVFile" class="file-label">📁 Upload CSV File:</label>
                         <input type="file" id="femaleCSVFile" accept=".csv" onchange="handleFemaleCSVUpload(event)">
@@ -139,6 +139,7 @@
             <section class="graph-section">
                 <div class="button-group">
                     <button class="btn btn-compile" onclick="compileAndGraph()">📊 Compile & Generate Graph</button>
+                    <button class="btn btn-sdi" onclick="generateSexualDimorphismIndex()">📈 Sexual Dimorphism Index</button>
                 </div>
                 <div id="graphNavigationControls" class="graph-navigation" style="display: none;">
                     <button class="nav-btn nav-prev" onclick="navigateToPreviousGraph()">← Previous</button>
@@ -147,13 +148,71 @@
                     </div>
                     <button class="nav-btn nav-next" onclick="navigateToNextGraph()">Next →</button>
                 </div>
+                <div id="sdiExportGroup" style="display: none;">
+                    <h3>Export Sexual Dimorphism Index Graph</h3>
+                    <button class="btn btn-export" onclick="printSDIGraph()">🖨️ Print / Save PDF</button>
+                    <button class="btn btn-export" onclick="toggleSDIPairwise()">📊 View Pairwise Differences</button>
+                </div>
+                <div class="export-button-group" id="graphExportGroup" style="display: none;">
+                    <h3>Export Pairwise Differences Graphs</h3>
+                    <button class="btn btn-export" onclick="exportGraphDataCSV()">📥 Download CSV</button>
+                    <button class="btn btn-export" onclick="exportGraphDataJSON()">📥 Download JSON</button>
+                    <button class="btn btn-export" onclick="printPairwiseGraph()">🖨️ Print Current Graph</button>
+                    <button class="btn btn-export" onclick="downloadAllPairwiseGraphs()">📦 Download All Graphs (30)</button>
+                </div>
                 <div id="graphContainer" class="graph-container">
                     <p class="placeholder">Graph will appear here after clicking "Compile & Generate Graph"</p>
                 </div>
             </section>
+
+            <!-- Mean Differences Summary Section -->
+            <section class="summary-section">
+                <div class="button-group">
+                    <button class="btn btn-summary" onclick="generateMeanDifferencesSummary()">📋 Mean Differences Summary</button>
+                </div>
+                <div id="summaryContainer" class="summary-container" style="display: none;">
+                    <div class="export-button-group">
+                        <h3>Export Summary Data</h3>
+                        <button class="btn btn-export" onclick="exportSummaryDataCSV()">📥 Download CSV</button>
+                        <button class="btn btn-export" onclick="exportSummaryDataJSON()">📥 Download JSON</button>
+                        <button class="btn btn-export" onclick="printSummaryData()">🖨️ Print / Save PDF</button>
+                    </div>
+                    <h2>Mean Pairwise Differences & Sexual Dimorphism Index</h2>
+                    <div id="summaryResultsTable" class="summary-results"></div>
+                </div>
+            </section>
+
+            <!-- Student's T-Test Section -->
+            <section class="ttest-section">
+                <div class="button-group">
+                    <button class="btn btn-ttest" onclick="generateTTestResults()">📉 Student's T-Test Analysis</button>
+                </div>
+                <div id="ttestContainer" class="ttest-container" style="display: none;">
+                    <div class="export-button-group">
+                        <h3>Export T-Test Results</h3>
+                        <button class="btn btn-export" onclick="exportTTestDataCSV()">📥 Download CSV</button>
+                        <button class="btn btn-export" onclick="exportTTestDataJSON()">📥 Download JSON</button>
+                        <button class="btn btn-export" onclick="printTTestData()">🖨️ Print / Save PDF</button>
+                    </div>
+                    <h2>Student's T-Test Results (Male vs Female)</h2>
+                    <p class="ttest-description">Null Hypothesis (H₀): There is no significant difference between male and female means. 
+                       Alternative Hypothesis (H₁): There is a significant difference between male and female means. (α = 0.05)</p>
+                    <div id="ttestResultsTable" class="ttest-results"></div>
+                </div>
+            </section>
+
+            <!-- Comprehensive Download Section -->
+            <section class="download-section">
+                <div class="button-group">
+                    <button class="btn btn-download" onclick="downloadComprehensivePDF()">📥 Download Complete Report (PDF)</button>
+                </div>
+                <p class="download-info">This will download a comprehensive PDF report including all data tables, graphs, and analysis results.</p>
+            </section>
         </main>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
