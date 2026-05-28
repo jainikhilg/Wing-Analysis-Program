@@ -6,11 +6,13 @@
     <title>Biological Data Analysis Tool</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Sphigniidae Graph Tool</h1>
+            <h1>Moth Graph Tool</h1>
             <p>Compare male and female specimen data across multiple variables</p>
         </header>
 
@@ -150,12 +152,15 @@
                 </div>
                 <div id="sdiExportGroup" style="display: none;">
                     <h3>Export Sexual Dimorphism Index Graph</h3>
+                    <button class="btn btn-export" onclick="exportSDIDataCSV()">📥 Download SDI CSV</button>
+                    <button class="btn btn-export" onclick="exportSDIPairwiseCSV()">📥 Download SDI Pairwise CSV</button>
                     <button class="btn btn-export" onclick="printSDIGraph()">🖨️ Print / Save PDF</button>
                     <button class="btn btn-export" onclick="toggleSDIPairwise()">📊 View Pairwise Differences</button>
                 </div>
                 <div class="export-button-group" id="graphExportGroup" style="display: none;">
                     <h3>Export Pairwise Differences Graphs</h3>
-                    <button class="btn btn-export" onclick="exportGraphDataCSV()">📥 Download CSV</button>
+                    <button class="btn btn-export" onclick="exportPairwiseDifferencesCSV()">📥 Download CSV</button>
+                    <button class="btn btn-export" onclick="exportGraphDataCSV()">📥 Download CSV (Legacy)</button>
                     <button class="btn btn-export" onclick="exportGraphDataJSON()">📥 Download JSON</button>
                     <button class="btn btn-export" onclick="printPairwiseGraph()">🖨️ Print Current Graph</button>
                     <button class="btn btn-export" onclick="downloadAllPairwiseGraphs()">📦 Download All Graphs (30)</button>
@@ -204,9 +209,10 @@
             <!-- Comprehensive Download Section -->
             <section class="download-section">
                 <div class="button-group">
-                    <button class="btn btn-download" onclick="downloadComprehensivePDF()">📥 Download Complete Report (PDF)</button>
+                    <button class="btn btn-download" onclick="exportComprehensiveCSV()">📥 Comprehensive CSV</button>
+                    <div id="googleSignInContainer" style="display: inline-block; margin-left: 10px;"></div>
                 </div>
-                <p class="download-info">This will download a comprehensive PDF report including all data tables, graphs, and analysis results.</p>
+                <p class="download-info">This will download a comprehensive CSV file combining all pairwise data (Compile & Generate Graph, SDI Pairwise, Mean Differences Summary, and Student's T-Test Analysis) with all specimen pairs, their measurements, and all statistical results in one file. Sign in with Google to also upload to Google Drive.</p>
             </section>
         </main>
     </div>

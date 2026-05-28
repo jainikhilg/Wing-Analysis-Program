@@ -1922,6 +1922,171 @@ function printSDIGraph() {
     });
 }
 
+// Export SDI Data to CSV
+function exportSDIDataCSV() {
+    if (currentSummaryData.length === 0) {
+        alert('Please generate Sexual Dimorphism Index first.');
+        return;
+    }
+
+    let csv = 'Variable,Male Mean,Female Mean,Sexual Dimorphism Index\n';
+    currentSummaryData.forEach(item => {
+        const sdi = item.sdi !== null ? item.sdi.toFixed(6) : 'N/A';
+        csv += `${item.variable},${item.maleMean.toFixed(6)},${item.femaleMean.toFixed(6)},${sdi}\n`;
+    });
+
+    downloadFile(csv, 'sexual_dimorphism_index.csv', 'text/csv');
+}
+
+// Export SDI Pairwise Data to CSV
+function exportSDIPairwiseCSV() {
+    if (!sdiPairwiseData || sdiPairwiseData.length === 0) {
+        // Generate if not already generated
+        sdiPairwiseData = generateSDIPairwiseData();
+        if (!sdiPairwiseData || sdiPairwiseData.length === 0) {
+            alert('Please generate Sexual Dimorphism Index Pairwise data first by clicking "View Pairwise Differences".');
+            return;
+        }
+    }
+
+    // Same format as Compile & Generate Graph CSV but with SDI values instead of pairwise differences
+    let csv = 'Variable,Pair Index,SDI Pairwise,Male Value,Female Value,Male Specimen,Female Specimen\n';
+    
+    sdiPairwiseData.forEach(item => {
+        item.diffs.forEach((diff, idx) => {
+            csv += `${item.column},${idx + 1},${diff.sdiDiff.toFixed(6)},${diff.maleValue.toFixed(6)},${diff.femaleValue.toFixed(6)},${diff.maleSpecies},${diff.femaleSpecies}\n`;
+        });
+    });
+
+    downloadFile(csv, 'sdi_pairwise_differences.csv', 'text/csv');
+}
+
+// Export Pairwise Differences Data to CSV
+function exportPairwiseDifferencesCSV() {
+    if (currentGraphData.length === 0) {
+        alert('Please generate Compile & Generate Graph first.');
+        return;
+    }
+
+    let csv = 'Variable,Pair Index,Pairwise Difference,Male Value,Female Value,Male Specimen,Female Specimen\n';
+    
+    currentGraphData.forEach(item => {
+        item.diffs.forEach((diff, idx) => {
+            csv += `${item.column},${idx + 1},${diff.value.toFixed(6)},${diff.maleVal.toFixed(6)},${diff.femaleVal.toFixed(6)},${diff.maleSpecies},${diff.femaleSpecies}\n`;
+        });
+    });
+
+    downloadFile(csv, 'pairwise_differences.csv', 'text/csv');
+}
+
+// Export Comprehensive CSV combining all analyses
+function exportComprehensiveCSV() {
+    console.log('exportComprehensiveCSV called');
+    
+    // Check if all required data is available
+    if (!currentSummaryData || currentSummaryData.length === 0) {
+        alert('Missing: Please generate "Mean Differences Summary" first.');
+        return;
+    }
+    if (!currentGraphData || currentGraphData.length === 0) {
+        alert('Missing: Please generate "Compile & Generate Graph" first.');
+        return;
+    }
+    if (!currentTTestData || currentTTestData.length === 0) {
+        alert('Missing: Please generate "Student\'s T-Test Analysis" first.');
+        return;
+    }
+
+    console.log('Building comprehensive CSV with all pairwise details and SDI pairwise...');
+
+    // Generate SDI pairwise data if not already generated
+    let sdiPairwiseDataLocal = sdiPairwiseData;
+    if (!sdiPairwiseDataLocal || sdiPairwiseDataLocal.length === 0) {
+        sdiPairwiseDataLocal = generateSDIPairwiseData();
+    }
+
+    // Build comprehensive data with pairwise information
+    const comprehensiveData = [];
+    
+    // Iterate through graph data (pairwise data) and enrich with all other information
+    currentGraphData.forEach(graphItem => {
+        const variable = graphItem.column;
+        
+        // Find corresponding summary data
+        const summaryItem = currentSummaryData.find(s => s.variable === variable);
+        
+        // Find corresponding T-test data
+        const tTestItem = currentTTestData.find(t => t.variable === variable);
+        
+        // Find corresponding SDI pairwise data
+        let sdiPairwiseItem = null;
+        if (sdiPairwiseDataLocal) {
+            sdiPairwiseItem = sdiPairwiseDataLocal.find(s => s.column === variable);
+        }
+        
+        // For each pairwise comparison in this variable
+        graphItem.diffs.forEach((diff, pairwiseIdx) => {
+            // Find matching SDI pairwise data
+            let sdiPairwise = 'N/A';
+            if (sdiPairwiseItem) {
+                const matchingSdiDiff = sdiPairwiseItem.diffs.find(d => 
+                    d.maleSpecies === diff.maleSpecies && 
+                    d.femaleSpecies === diff.femaleSpecies &&
+                    Math.abs(d.maleValue - diff.maleVal) < 0.0001
+                );
+                if (matchingSdiDiff) {
+                    sdiPairwise = matchingSdiDiff.sdiDiff.toFixed(6);
+                }
+            }
+            
+            const row = {
+                variable: variable,
+                pairwiseIndex: pairwiseIdx + 1,
+                maleSpecimen: diff.maleSpecies || 'Unknown',
+                femaleSpecimen: diff.femaleSpecies || 'Unknown',
+                maleValue: diff.maleVal.toFixed(6),
+                femaleValue: diff.femaleVal.toFixed(6),
+                pairwiseDifference: diff.value.toFixed(6),
+                sdiPairwise: sdiPairwise,
+                maleMean: summaryItem ? summaryItem.maleMean.toFixed(6) : 'N/A',
+                femaleMean: summaryItem ? summaryItem.femaleMean.toFixed(6) : 'N/A',
+                maleStdDev: tTestItem ? tTestItem.sd1.toFixed(6) : 'N/A',
+                femaleStdDev: tTestItem ? tTestItem.sd2.toFixed(6) : 'N/A',
+                meanPairwiseDifference: summaryItem ? summaryItem.meanDifference.toFixed(6) : 'N/A',
+                sexualDimorphismIndex: summaryItem ? (summaryItem.sdi !== null ? summaryItem.sdi.toFixed(6) : 'N/A') : 'N/A',
+                tValue: tTestItem ? tTestItem.tValue.toFixed(6) : 'N/A',
+                pValue: tTestItem ? tTestItem.pValue.toFixed(6) : 'N/A',
+                degreesOfFreedom: tTestItem ? tTestItem.df : 'N/A',
+                criticalValue: tTestItem ? tTestItem.criticalValue.toFixed(6) : 'N/A',
+                significant: tTestItem ? (tTestItem.isSignificant ? 'Yes' : 'No') : 'N/A',
+                decision: tTestItem ? (tTestItem.isSignificant ? 'REJECT NULL' : 'ACCEPT NULL') : 'N/A'
+            };
+            
+            comprehensiveData.push(row);
+        });
+    });
+
+    console.log('Data prepared with', comprehensiveData.length, 'pairwise rows');
+
+    // Build CSV header with all columns including SDI pairwise
+    let csv = 'Variable,Pair Index,Male Specimen,Female Specimen,Male Value,Female Value,Pairwise Difference,SDI Pairwise,Male Mean,Female Mean,Male Std Dev,Female Std Dev,Mean Pairwise Difference,Sexual Dimorphism Index,t-value,p-value,Degrees of Freedom,Critical Value,Significant,Decision\n';
+    
+    // Add data rows
+    comprehensiveData.forEach(row => {
+        csv += `${row.variable},${row.pairwiseIndex},${row.maleSpecimen},${row.femaleSpecimen},${row.maleValue},${row.femaleValue},${row.pairwiseDifference},${row.sdiPairwise},${row.maleMean},${row.femaleMean},${row.maleStdDev},${row.femaleStdDev},${row.meanPairwiseDifference},${row.sexualDimorphismIndex},${row.tValue},${row.pValue},${row.degreesOfFreedom},${row.criticalValue},${row.significant},${row.decision}\n`;
+    });
+
+    console.log('Calling downloadFile...');
+    downloadFile(csv, 'comprehensive_analysis.csv', 'text/csv');
+    
+    // Also upload to Google Drive if user is signed in
+    if (googleAuth) {
+        uploadToDrive(csv, 'comprehensive_analysis.csv');
+    }
+    
+    console.log('Download triggered successfully');
+}
+
 // Comprehensive PDF Download Function
 function downloadComprehensivePDF() {
     // Check if html2pdf is available
@@ -2823,9 +2988,86 @@ function populateSampleData() {
     alert('✓ Sample data loaded! \n\nData is ready for testing. Click "Compile & Generate Graph" to generate visualizations.');
 }
 
+// ====== GOOGLE DRIVE INTEGRATION ======
+let googleAuth = null;
+let lastGeneratedCSV = null;
+let lastGeneratedFilename = null;
+
+// Initialize Google Sign-In
+function initializeGoogleSignIn() {
+    google.accounts.id.initialize({
+        client_id: 'YOUR_CLIENT_ID_HERE.apps.googleusercontent.com',
+        callback: handleSignInCallback
+    });
+    
+    google.accounts.id.renderButton(
+        document.getElementById('googleSignInContainer'),
+        { 
+            theme: 'outline', 
+            size: 'large',
+            text: 'signin_with'
+        }
+    );
+}
+
+function handleSignInCallback(response) {
+    console.log('Google Sign-In successful');
+    googleAuth = response;
+    alert('✓ Successfully signed in with Google! CSV will be uploaded to Drive.');
+}
+
+// Upload CSV to Google Drive
+function uploadToDrive(csvContent, filename) {
+    if (!googleAuth) {
+        console.log('Not signed in to Google. Skipping Drive upload.');
+        return;
+    }
+
+    // Transform filename: "comprehensive_analysis.csv" → "comprehensiveanalysis.csv"
+    const nameWithoutExt = filename.replace('.csv', '');
+    const nameParts = nameWithoutExt.split('_');
+    const transformedName = (nameParts.slice(0, 2).join('')) + '.csv';
+    
+    console.log('Uploading to Google Drive as:', transformedName);
+
+    // Use Google Drive API to upload
+    const metadata = {
+        name: transformedName,
+        mimeType: 'text/csv'
+    };
+
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', new Blob([csvContent], { type: 'text/csv' }));
+
+    fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&access_token=' + googleAuth.credential, {
+        method: 'POST',
+        body: form
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.id) {
+            console.log('✓ File uploaded to Google Drive:', data.id);
+            alert('✓ File uploaded to Google Drive as: ' + transformedName);
+        } else {
+            console.error('Error uploading to Drive:', data);
+        }
+    })
+    .catch(error => {
+        console.error('Upload error:', error);
+    });
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     initializeTables();
+    
+    // Initialize Google Sign-In (will show error if credentials not configured)
+    try {
+        initializeGoogleSignIn();
+    } catch (e) {
+        console.log('Google Sign-In not available - local download only');
+    }
     
     // Add keyboard shortcut: Press 'T' to load test data
     document.addEventListener('keypress', (event) => {
