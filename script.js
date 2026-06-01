@@ -2030,8 +2030,16 @@ function exportComprehensiveCSV() {
         csv += `${row.variable},${row.pairwiseIndex},${row.maleSpecimen},${row.femaleSpecimen},${row.maleValue},${row.femaleValue},${row.pairwiseDifference},${row.sdiPairwise},${row.maleMean},${row.femaleMean},${row.maleStdDev},${row.femaleStdDev},${row.meanPairwiseDifference},${row.sexualDimorphismIndex},${row.tValue},${row.pValue},${row.degreesOfFreedom},${row.criticalValue},${row.significant},${row.decision}\n`;
     });
 
+    // Generate filename based on first male species name
+    let filename = 'comprehensive_analysis.csv';
+    if (maleData && maleData.length > 0 && maleData[0].species && maleData[0].species.trim()) {
+        // Sanitize the species name for use as a filename (remove invalid characters)
+        const sanitizedSpecies = maleData[0].species.trim().replace(/[\/\\:*?"<>|]/g, '_');
+        filename = `${sanitizedSpecies}_analysis.csv`;
+    }
+
     console.log('Calling downloadFile...');
-    downloadFile(csv, 'comprehensive_analysis.csv', 'text/csv');
+    downloadFile(csv, filename, 'text/csv');
     
     // Also upload to Google Drive if user is signed in
     if (googleAuth) {
