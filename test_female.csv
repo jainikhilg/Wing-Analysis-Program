@@ -1,0 +1,3 @@
+Species,wingL,mean_chordL,wingarea,moa1,moa2,moa3,moaND1,moaND2,moaND3,wingmass,wingAR,bodyL,maxbodywidth,bodymass,Ixx_bw,Iyy_bw,Izz_bw,Ixz_bw,wbf1,wbf2,CWing_loading,BandWmass,effective_HW_loading,L1,head_L,thorax_L,abdomen_L,head_L_PBL,thorax_L_PBL,abdomen_L_PBL
+Specimen1F,268.5,20.1,3100,0.72,0.62,0.54,0.92,0.80,0.71,2.5,7.8,9.2,4.8,1.15,0.056,0.048,0.062,0.011,2.78,2.15,0.92,1.38,0.41,145,9.8,3.7,2.5,0.077,0.031,0.022
+Specimen2F,275.2,21.0,3250,0.75,0.65,0.57,0.95,0.83,0.74,2.7,8.1,9.5,5.1,1.22,0.059,0.051,0.065,0.012,2.88,2.28,0.95,1.45,0.43,152,10.2,3.9,2.6,0.080,0.033,0.024

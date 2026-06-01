@@ -68,185 +68,42 @@ function deleteFemaleRow() {
 
 // Handle drag over event
 function handleDragOver(event) {
+    console.log('[DRAG] dragover event');
     event.preventDefault();
     event.stopPropagation();
     event.dataTransfer.dropEffect = 'copy';
     
-    const dropZone = event.target.closest('.drag-drop-zone');
-    if (dropZone) {
+    // Find the drag zone (could be the target itself or a parent)
+    let dropZone = event.target.closest('.drag-drop-zone');
+    if (!dropZone) {
+        dropZone = event.target;
+    }
+    
+    if (dropZone && dropZone.classList) {
+        console.log('[DRAG] Adding drag-over class');
         dropZone.classList.add('drag-over');
     }
 }
 
 // Handle drag leave event
 function handleDragLeave(event) {
+    console.log('[DRAG] dragleave event');
     event.preventDefault();
     event.stopPropagation();
     
+    // Only remove drag-over if we're actually leaving the drop zone
     const dropZone = event.target.closest('.drag-drop-zone');
-    if (dropZone && event.target === dropZone) {
-        dropZone.classList.remove('drag-over');
+    if (dropZone) {
+        // Check if we're leaving the zone entirely (not just moving to a child)
+        if (event.target === dropZone || 
+            (event.clientX < dropZone.getBoundingClientRect().left ||
+             event.clientX > dropZone.getBoundingClientRect().right ||
+             event.clientY < dropZone.getBoundingClientRect().top ||
+             event.clientY > dropZone.getBoundingClientRect().bottom)) {
+            console.log('[DRAG] Removing drag-over class');
+            dropZone.classList.remove('drag-over');
+        }
     }
-}
-
-// Handle male CSV drop
-function handleMaleDrop(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    const dropZone = document.getElementById('maleDragZone');
-    dropZone.classList.remove('drag-over');
-    
-    const files = event.dataTransfer.files;
-    if (files.length === 0) return;
-    
-    const file = files[0];
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-        alert('Please drop a CSV file');
-        return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const csvText = e.target.result;
-        const rows = parseCSV(csvText);
-        
-        if (rows.length === 0) {
-            alert('CSV file is empty');
-            return;
-        }
-        
-        // Check if first row is a header row (contains column names)
-        let startIndex = 0;
-        const firstRow = rows[0];
-        if (isHeaderRow(firstRow)) {
-            startIndex = 1;
-        }
-        
-        if (startIndex >= rows.length) {
-            alert('CSV file contains only headers');
-            return;
-        }
-        
-        // Check if data is empty or only contains empty rows
-        const hasExistingData = maleData.some(row => 
-            Object.values(row).some(val => val !== '' && val !== null && val !== undefined)
-        );
-        
-        let newRowsCount = rows.length - startIndex;
-        
-        if (!hasExistingData) {
-            // Replace existing empty rows
-            maleData = [];
-        }
-        
-        const previousCount = maleData.length;
-        
-        // Process each row starting from startIndex
-        for (let i = startIndex; i < rows.length; i++) {
-            const values = rows[i];
-            const rowNum = hasExistingData ? previousCount + (i - startIndex) + 1 : (i - startIndex) + 1;
-            const speciesName = values[0] || `Row ${rowNum}`;
-            const dataRow = createDataRow(speciesName);
-            
-            // Map remaining values to columns
-            for (let j = 1; j < values.length && j - 1 < columns.length; j++) {
-                const value = values[j].trim();
-                if (value) {
-                    dataRow[columns[j - 1]] = value;
-                }
-            }
-            
-            maleData.push(dataRow);
-        }
-        
-        selectedMaleRow = null;
-        renderMaleTable();
-        const actionWord = hasExistingData ? 'Added' : 'Loaded';
-        alert(`${actionWord} ${newRowsCount} male specimens. Total: ${maleData.length} rows`);
-    };
-    
-    reader.readAsText(file);
-}
-
-// Handle female CSV drop
-function handleFemaleDrop(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    const dropZone = document.getElementById('femaleDragZone');
-    dropZone.classList.remove('drag-over');
-    
-    const files = event.dataTransfer.files;
-    if (files.length === 0) return;
-    
-    const file = files[0];
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-        alert('Please drop a CSV file');
-        return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const csvText = e.target.result;
-        const rows = parseCSV(csvText);
-        
-        if (rows.length === 0) {
-            alert('CSV file is empty');
-            return;
-        }
-        
-        // Check if first row is a header row (contains column names)
-        let startIndex = 0;
-        const firstRow = rows[0];
-        if (isHeaderRow(firstRow)) {
-            startIndex = 1;
-        }
-        
-        if (startIndex >= rows.length) {
-            alert('CSV file contains only headers');
-            return;
-        }
-        
-        // Check if data is empty or only contains empty rows
-        const hasExistingData = femaleData.some(row => 
-            Object.values(row).some(val => val !== '' && val !== null && val !== undefined)
-        );
-        
-        let newRowsCount = rows.length - startIndex;
-        
-        if (!hasExistingData) {
-            // Replace existing empty rows
-            femaleData = [];
-        }
-        
-        const previousCount = femaleData.length;
-        
-        // Process each row starting from startIndex
-        for (let i = startIndex; i < rows.length; i++) {
-            const values = rows[i];
-            const rowNum = hasExistingData ? previousCount + (i - startIndex) + 1 : (i - startIndex) + 1;
-            const speciesName = values[0] || `Row ${rowNum}`;
-            const dataRow = createDataRow(speciesName);
-            
-            // Map remaining values to columns
-            for (let j = 1; j < values.length && j - 1 < columns.length; j++) {
-                const value = values[j].trim();
-                if (value) {
-                    dataRow[columns[j - 1]] = value;
-                }
-            }
-            
-            femaleData.push(dataRow);
-        }
-        
-        selectedFemaleRow = null;
-        renderFemaleTable();
-        const actionWord = hasExistingData ? 'Added' : 'Loaded';
-        alert(`${actionWord} ${newRowsCount} female specimens. Total: ${femaleData.length} rows`);
-    };
-    
-    reader.readAsText(file);
 }
 
 // Detect if a row is a header row (contains column names)
@@ -325,128 +182,225 @@ function parseCSV(csvText) {
     return rows;
 }
 
-// Handle male CSV upload
-function handleMaleCSVUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+// Process multiple CSV files and add rows in order
+function processMultipleCSVFiles(fileList, tableName) {
+    if (!fileList || fileList.length === 0) {
+        console.error('[PROCESS] No files provided');
+        return;
+    }
     
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const csvText = e.target.result;
-        const rows = parseCSV(csvText);
+    // Get the data array and render function for this table
+    const isMALE = tableName === 'male';
+    const targetArray = isMALE ? maleData : femaleData;
+    const renderFn = isMALE ? renderMaleTable : renderFemaleTable;
+    
+    // Convert FileList to array and filter CSV files
+    const csvFiles = Array.from(fileList).filter(f => 
+        f.name.toLowerCase().endsWith('.csv')
+    );
+    
+    if (csvFiles.length === 0) {
+        alert('❌ Please select only CSV files');
+        return;
+    }
+    
+    console.log(`[PROCESS] Processing ${csvFiles.length} file(s) for ${tableName} table`);
+    
+    let completedFiles = 0;
+    let totalRowsAdded = 0;
+    const allRows = [];
+    
+    // Process each file
+    csvFiles.forEach((file, idx) => {
+        console.log(`[PROCESS] Starting to read file ${idx + 1}/${csvFiles.length}: ${file.name}`);
         
-        if (rows.length === 0) {
-            alert('CSV file is empty');
-            return;
-        }
+        const reader = new FileReader();
         
-        // Check if first row is a header row (contains column names)
-        let startIndex = 0;
-        const firstRow = rows[0];
-        if (isHeaderRow(firstRow)) {
-            startIndex = 1;
-        }
-        
-        if (startIndex >= rows.length) {
-            alert('CSV file contains only headers');
-            return;
-        }
-        
-        // Check if data is empty or only contains empty rows
-        const hasExistingData = maleData.some(row => 
-            Object.values(row).some(val => val !== '' && val !== null && val !== undefined)
-        );
-        
-        let newRowsCount = rows.length - startIndex;
-        
-        if (!hasExistingData) {
-            // Replace existing empty rows
-            maleData = [];
-        }
-        
-        const previousCount = maleData.length;
-        
-        // Process each row starting from startIndex
-        for (let i = startIndex; i < rows.length; i++) {
-            const values = rows[i];
-            const rowNum = hasExistingData ? previousCount + (i - startIndex) + 1 : (i - startIndex) + 1;
-            const speciesName = values[0] || `Row ${rowNum}`;
-            const dataRow = createDataRow(speciesName);
-            
-            // Map remaining values to columns
-            for (let j = 1; j < values.length && j - 1 < columns.length; j++) {
-                const value = values[j].trim();
-                if (value) {
-                    dataRow[columns[j - 1]] = value;
+        reader.onload = (e) => {
+            try {
+                const csvText = e.target.result;
+                const parsedRows = parseCSV(csvText);
+                
+                if (!parsedRows || parsedRows.length === 0) {
+                    console.warn(`[PROCESS] File ${file.name} is empty`);
+                    completedFiles++;
+                    checkIfDone();
+                    return;
                 }
+                
+                // Skip header row
+                let startRow = 0;
+                if (isHeaderRow(parsedRows[0])) {
+                    startRow = 1;
+                }
+                
+                // Extract data rows
+                for (let i = startRow; i < parsedRows.length; i++) {
+                    const csvRow = parsedRows[i];
+                    const speciesName = (csvRow[0] || '').trim() || `Specimen`;
+                    
+                    // Create new data row
+                    const dataRow = {
+                        species: speciesName
+                    };
+                    
+                    // Add all columns
+                    for (let colIdx = 0; colIdx < columns.length; colIdx++) {
+                        const csvColIdx = colIdx + 1; // CSV has species in column 0
+                        dataRow[columns[colIdx]] = (csvRow[csvColIdx] || '').trim();
+                    }
+                    
+                    allRows.push(dataRow);
+                    totalRowsAdded++;
+                }
+                
+                console.log(`[PROCESS] File ${idx + 1} complete: added ${parsedRows.length - startRow} rows`);
+                completedFiles++;
+                checkIfDone();
+                
+            } catch (error) {
+                console.error(`[PROCESS] Error processing file ${file.name}:`, error);
+                completedFiles++;
+                checkIfDone();
+            }
+        };
+        
+        reader.onerror = (e) => {
+            console.error(`[PROCESS] Failed to read file: ${file.name}`);
+            completedFiles++;
+            checkIfDone();
+        };
+        
+        reader.readAsText(file);
+    });
+    
+    // Check if all files are done processing
+    function checkIfDone() {
+        if (completedFiles === csvFiles.length) {
+            // All files done, now update the table
+            console.log(`[PROCESS] All files processed. Adding ${totalRowsAdded} rows to ${tableName} table`);
+            
+            if (isMALE) {
+                // Count empty rows at the start to fill them first
+                let emptyRowsAtStart = 0;
+                for (let row of maleData) {
+                    const hasData = columns.some(col => row[col] && row[col].trim() !== '');
+                    if (!hasData && (!row.species || row.species.trim() === '')) {
+                        emptyRowsAtStart++;
+                    } else {
+                        break; // Stop counting when we hit a non-empty row
+                    }
+                }
+                
+                // Fill empty rows first, then append remaining
+                if (emptyRowsAtStart > 0 && allRows.length > 0) {
+                    const rowsToFill = Math.min(emptyRowsAtStart, allRows.length);
+                    for (let i = 0; i < rowsToFill; i++) {
+                        maleData[i] = allRows[i];
+                    }
+                    if (allRows.length > rowsToFill) {
+                        maleData.push(...allRows.slice(rowsToFill));
+                    }
+                } else {
+                    maleData.push(...allRows);
+                }
+                
+                selectedMaleRow = null;
+            } else {
+                // Count empty rows at the start to fill them first
+                let emptyRowsAtStart = 0;
+                for (let row of femaleData) {
+                    const hasData = columns.some(col => row[col] && row[col].trim() !== '');
+                    if (!hasData && (!row.species || row.species.trim() === '')) {
+                        emptyRowsAtStart++;
+                    } else {
+                        break; // Stop counting when we hit a non-empty row
+                    }
+                }
+                
+                // Fill empty rows first, then append remaining
+                if (emptyRowsAtStart > 0 && allRows.length > 0) {
+                    const rowsToFill = Math.min(emptyRowsAtStart, allRows.length);
+                    for (let i = 0; i < rowsToFill; i++) {
+                        femaleData[i] = allRows[i];
+                    }
+                    if (allRows.length > rowsToFill) {
+                        femaleData.push(...allRows.slice(rowsToFill));
+                    }
+                } else {
+                    femaleData.push(...allRows);
+                }
+                
+                selectedFemaleRow = null;
             }
             
-            maleData.push(dataRow);
+            // Render the table
+            renderFn();
+            
+            alert(`✅ Loaded ${csvFiles.length} file(s)\n✓ Added ${totalRowsAdded} row(s)\n✓ Total: ${targetArray.length} rows`);
+            console.log(`[PROCESS] Complete! Table now has ${targetArray.length} rows`);
         }
-        
-        selectedMaleRow = null;
-        renderMaleTable();
-        const actionWord = hasExistingData ? 'Added' : 'Loaded';
-        alert(`${actionWord} ${newRowsCount} male specimens. Total: ${maleData.length} rows`);
-    };
+    }
+}
+
+// Handle male CSV upload
+function handleMaleCSVUpload(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
     
-    reader.readAsText(file);
+    processMultipleCSVFiles(files, 'male');
 }
 
 // Handle female CSV upload
 function handleFemaleCSVUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
     
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const csvText = e.target.result;
-        const rows = parseCSV(csvText);
-        
-        if (rows.length === 0) {
-            alert('CSV file is empty');
-            return;
-        }
-        
-        // Check if first row is a header row (contains column names)
-        let startIndex = 0;
-        const firstRow = rows[0];
-        if (isHeaderRow(firstRow)) {
-            startIndex = 1;
-        }
-        
-        if (startIndex >= rows.length) {
-            alert('CSV file contains only headers');
-            return;
-        }
-        
-        // Store count of new rows being added
-        const newRowsCount = rows.length - startIndex;
-        const previousCount = femaleData.length;
-        
-        // Append to existing female data
-        for (let i = startIndex; i < rows.length; i++) {
-            const values = rows[i];
-            const speciesName = values[0] || `Row ${previousCount + (i - startIndex) + 1}`;
-            const dataRow = createDataRow(speciesName);
-            
-            // Map remaining values to columns
-            for (let j = 1; j < values.length && j - 1 < columns.length; j++) {
-                const value = values[j].trim();
-                if (value) {
-                    dataRow[columns[j - 1]] = value;
-                }
-            }
-            
-            femaleData.push(dataRow);
-        }
-        
-        selectedFemaleRow = null;
-        renderFemaleTable();
-        alert(`Added ${newRowsCount} female specimens. Total: ${femaleData.length} rows`);
-    };
+    processMultipleCSVFiles(files, 'female');
+}
+
+// Handle male CSV drop
+function handleMaleDrop(event) {
+    console.log('[DRAG] Male drop event triggered');
+    event.preventDefault();
+    event.stopPropagation();
     
-    reader.readAsText(file);
+    const dropZone = document.getElementById('maleDragZone');
+    if (dropZone) {
+        dropZone.classList.remove('drag-over');
+    }
+    
+    const files = event.dataTransfer.files;
+    console.log(`[DRAG] Dropped ${files.length} files on male zone`);
+    
+    if (!files || files.length === 0) {
+        console.warn('[DRAG] No files in drop event');
+        return;
+    }
+    
+    processMultipleCSVFiles(files, 'male');
+}
+
+// Handle female CSV drop
+function handleFemaleDrop(event) {
+    console.log('[DRAG] Female drop event triggered');
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const dropZone = document.getElementById('femaleDragZone');
+    if (dropZone) {
+        dropZone.classList.remove('drag-over');
+    }
+    
+    const files = event.dataTransfer.files;
+    console.log(`[DRAG] Dropped ${files.length} files on female zone`);
+    
+    if (!files || files.length === 0) {
+        console.warn('[DRAG] No files in drop event');
+        return;
+    }
+    
+    processMultipleCSVFiles(files, 'female');
 }
 
 // Format numbers for display (handles scientific notation)
@@ -3060,6 +3014,13 @@ function uploadToDrive(csvContent, filename) {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('========================================');
+    console.log('✓ Page loaded - initializing...');
+    console.log(`✓ maleData array exists: ${maleData !== undefined}`);
+    console.log(`✓ femaleData array exists: ${femaleData !== undefined}`);
+    console.log(`✓ columns defined: ${columns.length} columns`);
+    console.log('========================================');
+    
     initializeTables();
     
     // Initialize Google Sign-In (will show error if credentials not configured)

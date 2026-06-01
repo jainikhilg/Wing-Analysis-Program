@@ -22,9 +22,9 @@
                 <section class="gender-section">
                     <h2>Male Moth</h2>
                     <div class="file-upload-section">
-                        <label for="maleCSVFile" class="file-label">📁 Upload CSV File:</label>
-                        <input type="file" id="maleCSVFile" accept=".csv" onchange="handleMaleCSVUpload(event)">
-                        <span class="file-hint">CSV should have species name in first column, then data columns</span>
+                        <label for="maleCSVFile" class="file-label">📁 Upload CSV File(s):</label>
+                        <input type="file" id="maleCSVFile" accept=".csv" multiple onchange="handleMaleCSVUpload(event)">
+                        <span class="file-hint">📌 Shift+Click to select multiple CSV files - they'll be added in order</span>
                     </div>
                     <div class="drag-drop-zone" id="maleDragZone" ondrop="handleMaleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
                         <p>📂 <strong>Drag and drop CSV file here</strong></p>
@@ -81,9 +81,9 @@
                 <section class="gender-section">
                     <h2>Female Moth</h2>
                     <div class="file-upload-section">
-                        <label for="femaleCSVFile" class="file-label">📁 Upload CSV File:</label>
-                        <input type="file" id="femaleCSVFile" accept=".csv" onchange="handleFemaleCSVUpload(event)">
-                        <span class="file-hint">CSV should have species name in first column, then data columns</span>
+                        <label for="femaleCSVFile" class="file-label">📁 Upload CSV File(s):</label>
+                        <input type="file" id="femaleCSVFile" accept=".csv" multiple onchange="handleFemaleCSVUpload(event)">
+                        <span class="file-hint">📌 Shift+Click to select multiple CSV files - they'll be added in order</span>
                     </div>
                     <div class="drag-drop-zone" id="femaleDragZone" ondrop="handleFemaleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
                         <p>📂 <strong>Drag and drop CSV file here</strong></p>
